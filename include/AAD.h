@@ -20,7 +20,6 @@ As long as this comment is preserved at the top of the file
 #include "gaussians.h"
 #include <memory>
 #include "AADConfig.h"
-#include "AADReduction.h"
 #include "AADNumWrapper.h"
 #include "AADVectorFuncs.h"
 
