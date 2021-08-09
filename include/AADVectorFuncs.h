@@ -24,7 +24,7 @@ struct VecSumOp<I, Number> {
 
 template<class I>
 it_value_type<I> sum(I begin, I end){
-    return VecSumOp<I, it_value_type<I> >(begin, end);
+    return VecSumOp<I, it_value_type<I> >::sum(begin, end);
 }
 
 // dot product
@@ -72,7 +72,7 @@ struct VecDotProdOp<I1, I2, Number, Number> {
 
 template<class I1, class I2>
 typename VecDotProdOp<I1, I2, it_value_type<I1>, it_value_type<I2> >::returnT
-dot_prod(I1 first1, I1 last1, I2 first2){
+dotProd(I1 first1, I1 last1, I2 first2){
   return VecDotProdOp
       <I1, I2, it_value_type<I1>, it_value_type<I2> >::dot_prodcut
       (first1, last1, first2);

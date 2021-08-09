@@ -18,7 +18,7 @@ struct vectorOps {
         static_assert(is_it_value_type<I, T>::value, "Iterator not Ts");
 
         T res;
-        res.createNode(std::distance(begin, end));
+        res.createNode(static_cast<size_t>(std::distance(begin, end)));
 
         double val{};
         size_t i{};
@@ -41,7 +41,7 @@ struct vectorOps {
                       "Second iterator to T");
 
         T res;
-        res.createNode(std::distance(f1, l1));
+        res.createNode(static_cast<size_t>(std::distance(f1, l1)));
 
         double val{};
         size_t i{};
@@ -64,7 +64,7 @@ struct vectorOps {
                       "Second iterator not to T");
 
         T res;
-        const size_t n = std::distance(f1, l1);
+        const size_t n{static_cast<size_t>(std::distance(f1, l1))};
         res.createNode(2 * n);
 
         double val{};
