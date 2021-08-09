@@ -15,7 +15,7 @@ struct vectorOps {
     /// computes the sum
     template<class I>
     static T sum(I begin, I end){
-        static_assert(is_it_value_type<I, T>::value, "Iterator not Ts");
+        static_assert(is_it_value_type<I, T>::value, "Iterator is not to Ts");
 
         T res;
         res.createNode(static_cast<size_t>(std::distance(begin, end)));
@@ -36,9 +36,9 @@ struct vectorOps {
     template<class I1, class I2>
     static T dot_product(I1 f1, I1 l1, I2 f2){
         static_assert(is_it_value_type<I1, T>::value,
-                      "First iterator not to T");
+                      "First iterator is not to Ts");
         static_assert(!is_it_value_type<I2, T>::value,
-                      "Second iterator to T");
+                      "Second iterator is to Ts");
 
         T res;
         res.createNode(static_cast<size_t>(std::distance(f1, l1)));
@@ -59,9 +59,9 @@ struct vectorOps {
     template<class I1, class I2>
     static T dot_product_identical(I1 f1, I1 l1, I2 f2){
         static_assert(is_it_value_type<I1, T>::value,
-                      "First iterator not to T");
+                      "First iterator is not to Ts");
         static_assert(is_it_value_type<I2, T>::value,
-                      "Second iterator not to T");
+                      "Second iterator is not to Ts");
 
         T res;
         const size_t n{static_cast<size_t>(std::distance(f1, l1))};
@@ -79,6 +79,71 @@ struct vectorOps {
 
         res.myValue = val;
         return res;
+    }
+    
+    /*
+     * computes the matrix vector product Xa where X is a m x n matrix and 
+     * a is a n vector. The result is stored in the last argument which needs
+     * to be iterator with space for at least m elements. The matrix is in 
+     * column-major order.
+     * 
+     * This is the version where the matrix is a T type whereas the vector is 
+     * for non-Ts.
+     */
+    template<class I1, class I2, class I3>
+    static void mat_vec_prod_TMat
+    (I1 xf, I1 xl, I2 af, I2 al, I3 of){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(!is_it_value_type<I2, T>::value,
+                      "Second iterator is to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al)), 
+                     m = static_cast<size_t>(std::distance(xf, xl)) / n;
+                     
+        for(auto v = of; v != of + m; ++v){
+            v->createNode(n);
+            v.myValue = 0;
+        }
+        
+        for(size_t j = 0; j < n; ++j, ++af)
+            for(size_t i = 0; i < m; ++i, ++xf){
+                of[i].myValue += xf->Value()  * *af;
+                of[i].setpDerivatives(j, *af);
+                of[i].setpAdjPtrs(j, *xf);
+            }
+    }
+    
+    /**
+     * the same as mat_vec_prod_TMat but where the first argument is for 
+     * non-Ts and the second argument is for Ts.
+     */
+    template<class I1, class I2, class I3>
+    static void mat_vec_prod_TVec
+    (I1 xf, I1 xl, I2 af, I2 al, I3 of){
+        static_assert(!is_it_value_type<I1, T>::value,
+                      "First iterator is to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al)), 
+                     m = static_cast<size_t>(std::distance(xf, xl)) / n;
+                     
+        for(auto v = of; v != of + m; ++v){
+            v->createNode(n);
+            v.myValue = 0;
+        }
+        
+        for(size_t j = 0; j < n; ++j, ++af)
+            for(size_t i = 0; i < m; ++i, ++xf){
+                of[i].myValue += *xf  * af->value();
+                of[i].setpDerivatives(j, *xf);
+                of[i].setpAdjPtrs(j, *af);
+            }
     }
 };
 

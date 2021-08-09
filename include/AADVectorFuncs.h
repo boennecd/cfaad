@@ -78,4 +78,34 @@ dotProd(I1 first1, I1 last1, I2 first2){
       (first1, last1, first2);
 }
 
+// matrix vector products
+template<class I1, class I2, class V1, class V2>
+struct VecMatVecProd {
+    /// the general case
+    template<class I3>
+    static void mat_vec_prod(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+        const size_t n = static_cast<size_t>(std::distance(af, al)), 
+                     m = static_cast<size_t>(std::distance(xf, xl)) / n;
+                     
+        for(auto v = of; v != of + m; ++v)
+            *v = 0;
+        
+        if(trans)
+            for(size_t i = 0; i < m; ++i)
+                for(size_t j = 0; j < n; ++j, ++xf)
+                    of[i] += *xf * af[j];
+        else
+            for(size_t j = 0; j < n; ++j, ++af)
+                for(size_t i = 0; i < m; ++i, ++xf)
+                    of[i] += *xf * *af;
+    }
+};
+
+template<class I1, class I2, class I3>
+void matVecProd(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+    VecMatVecProd
+    <I1, I2, it_value_type<I1>, it_value_type<I2> >::mat_vec_prod
+    (xf, xl, af, al, of, trans);
+}
+
 } // namespace cfadd

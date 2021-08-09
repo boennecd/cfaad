@@ -56,7 +56,7 @@ inline auto setNumResultsForAAD(const bool multi = false, const size_t numResult
 template <class IT>
 inline void putOnTape(IT begin, IT end)
 {
-    for_each(begin, end, [](Number& n) { n.putOnTape(); });
+    std::for_each(begin, end, [](Number& n) { n.putOnTape(); });
 }
 
 //	Convert collection between double and Number or reverse
@@ -64,7 +64,7 @@ template<class It1, class It2>
 inline void convertCollection(It1 srcBegin, It1 srcEnd, It2 destBegin)
 {
     using destType = std::remove_reference_t<decltype(*destBegin)>;
-    transform(srcBegin, srcEnd, destBegin,
+    std::transform(srcBegin, srcEnd, destBegin,
         [](const auto& source) { return destType(source); });
 }
 
