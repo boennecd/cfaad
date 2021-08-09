@@ -165,7 +165,7 @@ TEST_CASE("cfaad::matVecProd gives the righ value") {
 }
 
 TEST_CASE("cfaad::matVecProd benchmark"){
-    constexpr size_t n_reps {100};
+    constexpr size_t n_reps{100};
     
     BENCHMARK("two double iterators") {
         double v{};

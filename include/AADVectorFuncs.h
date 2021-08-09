@@ -101,6 +101,33 @@ struct VecMatVecProd {
     }
 };
 
+template<class I1, class I2, class V2>
+struct VecMatVecProd<I1, I2, Number, V2> {
+    /// special case where the matrix is a Number type
+    template<class I3>
+    static void mat_vec_prod(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+        Number::mat_vec_prod_TMat(xf, xl, af, al, of, trans);
+    }
+};
+
+template<class I1, class I2, class V1>
+struct VecMatVecProd<I1, I2, V1, Number> {
+    /// special case where the vector is a Number type
+    template<class I3>
+    static void mat_vec_prod(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+        Number::mat_vec_prod_TVec(xf, xl, af, al, of, trans);
+    }
+};
+
+template<class I1, class I2>
+struct VecMatVecProd<I1, I2, Number, Number> {
+    /// special case where both iterators are for Numbers
+    template<class I3>
+    static void mat_vec_prod(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+        Number::mat_vec_prod_identical(xf, xl, af, al, of, trans);
+    }
+};
+
 template<class I1, class I2, class I3>
 void matVecProd(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
     VecMatVecProd

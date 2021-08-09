@@ -82,17 +82,17 @@ struct vectorOps {
     }
     
     /*
-     * computes the matrix vector product Xa where X is a m x n matrix and 
+     * computes the matrix vector product X.a where X is a m x n matrix and 
      * a is a n vector. The result is stored in the last argument which needs
      * to be iterator with space for at least m elements. The matrix is in 
      * column-major order.
      * 
      * This is the version where the matrix is a T type whereas the vector is 
-     * for non-Ts.
+     * for non-Ts. The last argument sets whether it is the X^T rather than X.
      */
     template<class I1, class I2, class I3>
     static void mat_vec_prod_TMat
-    (I1 xf, I1 xl, I2 af, I2 al, I3 of){
+    (I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
         static_assert(is_it_value_type<I1, T>::value,
                       "First iterator is not to Ts");
         static_assert(!is_it_value_type<I2, T>::value,
@@ -103,14 +103,27 @@ struct vectorOps {
         const size_t n = static_cast<size_t>(std::distance(af, al)), 
                      m = static_cast<size_t>(std::distance(xf, xl)) / n;
                      
+        if(trans){
+            for(size_t i = 0; i < m; ++i, ++of){
+                of->createNode(n);
+                of->myValue = 0;
+                for(size_t j = 0; j < n; ++j, ++xf){
+                    of->myValue += xf->value() * af[j];
+                    of->setpDerivatives(j, af[j]);
+                    of->setpAdjPtrs(j, *xf);
+                }
+            }
+            return;
+        }
+                     
         for(auto v = of; v != of + m; ++v){
             v->createNode(n);
-            v.myValue = 0;
+            v->myValue = 0;
         }
         
         for(size_t j = 0; j < n; ++j, ++af)
             for(size_t i = 0; i < m; ++i, ++xf){
-                of[i].myValue += xf->Value()  * *af;
+                of[i].myValue += xf->value() * *af;
                 of[i].setpDerivatives(j, *af);
                 of[i].setpAdjPtrs(j, *xf);
             }
@@ -122,7 +135,7 @@ struct vectorOps {
      */
     template<class I1, class I2, class I3>
     static void mat_vec_prod_TVec
-    (I1 xf, I1 xl, I2 af, I2 al, I3 of){
+    (I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
         static_assert(!is_it_value_type<I1, T>::value,
                       "First iterator is to Ts");
         static_assert(is_it_value_type<I2, T>::value,
@@ -133,9 +146,24 @@ struct vectorOps {
         const size_t n = static_cast<size_t>(std::distance(af, al)), 
                      m = static_cast<size_t>(std::distance(xf, xl)) / n;
                      
+                     
+        if(trans){
+            for(size_t i = 0; i < m; ++i, ++of){
+                of->createNode(n);
+                of->myValue = 0;
+                for(size_t j = 0; j < n; ++j, ++xf){
+                    of->myValue += *xf  * af[j].value();
+                    of->setpDerivatives(j, *xf);
+                    of->setpAdjPtrs(j, af[j]);
+                }
+            }
+            
+            return;
+        }
+                     
         for(auto v = of; v != of + m; ++v){
             v->createNode(n);
-            v.myValue = 0;
+            v->myValue = 0;
         }
         
         for(size_t j = 0; j < n; ++j, ++af)
@@ -143,6 +171,51 @@ struct vectorOps {
                 of[i].myValue += *xf  * af->value();
                 of[i].setpDerivatives(j, *xf);
                 of[i].setpAdjPtrs(j, *af);
+            }
+    }
+    
+    /// the same as mat_vec_prod_TMat but where both iterators are for Ts.
+    template<class I1, class I2, class I3>
+    static void mat_vec_prod_identical
+    (I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al)), 
+                     m = static_cast<size_t>(std::distance(xf, xl)) / n;
+                     
+        if(trans){
+            for(size_t i = 0; i < m; ++i, ++of){
+                of->createNode(2 * n);
+                of->myValue = 0;
+                for(size_t j = 0; j < n; ++j, ++xf){
+                    of->myValue += xf->value() * af[j].value();
+                    of->setpDerivatives(j, xf->value());
+                    of->setpAdjPtrs(j, af[j]);
+                    of->setpDerivatives(j + n, af[j].value());
+                    of->setpAdjPtrs(j + n, *xf);
+                }
+            }
+            
+            return;
+        }
+                     
+        for(auto v = of; v != of + m; ++v){
+            v->createNode(2 * n);
+            v->myValue = 0;
+        }
+
+        for(size_t j = 0; j < n; ++j, ++af)
+            for(size_t i = 0; i < m; ++i, ++xf){
+                of[i].myValue += xf->value() * af->value();
+                of[i].setpDerivatives(j, xf->value());
+                of[i].setpAdjPtrs(j, *af);
+                of[i].setpDerivatives(j + n, af->value());
+                of[i].setpAdjPtrs(j + n, *xf);
             }
     }
 };
