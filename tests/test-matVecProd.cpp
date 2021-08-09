@@ -169,10 +169,15 @@ TEST_CASE("cfaad::matVecProd benchmark"){
     
     BENCHMARK("two double iterators") {
         double v{};
-        for(size_t i = 0; i < n_reps; ++i){
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(B), end(B), begin(d), end(d), wk, false, m);
+        return v;
+    };
+    
+    BENCHMARK("two double iterators (trans)") {
+        double v{};
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(B), end(B), begin(a), end(a), wk, true, n);
-        }
         return v;
     };
     
@@ -182,12 +187,23 @@ TEST_CASE("cfaad::matVecProd benchmark"){
         cfaad::convertCollection(begin(d), end(d), ad_d);
         
         Number v{0};
-        for(size_t i = 0; i < n_reps; ++i){
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(B), end(B), begin(ad_d), end(ad_d), 
                            ad_wk, false, m);
+        v.propagateToStart();
+        
+        return v.value();
+    };
+    
+    BENCHMARK("mat (double) x vec (Number) (trans)") {
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(a), end(a), ad_a);
+        cfaad::convertCollection(begin(d), end(d), ad_d);
+        
+        Number v{0};
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(B), end(B), begin(ad_a), end(ad_a), ad_wk, 
                            true, n);
-        }
         v.propagateToStart();
         
         return v.value();
@@ -198,12 +214,22 @@ TEST_CASE("cfaad::matVecProd benchmark"){
         cfaad::convertCollection(begin(B), end(B), ad_B);
         
         Number v{0};
-        for(size_t i = 0; i < n_reps; ++i){
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(ad_B), end(ad_B), begin(d), end(d), 
                            ad_wk, false, m);
+        v.propagateToStart();
+                       
+        return v.value();
+    };
+    
+    BENCHMARK("mat (Number) x vec (double) (trans)") {
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(B), end(B), ad_B);
+        
+        Number v{0};
+        for(size_t i = 0; i < n_reps; ++i)
             v += test_func(begin(ad_B), end(ad_B), begin(a), end(a), ad_wk, 
                            true, n);
-        }
         v.propagateToStart();
                        
         return v.value();
@@ -216,12 +242,24 @@ TEST_CASE("cfaad::matVecProd benchmark"){
         cfaad::convertCollection(begin(B), end(B), ad_B);
         
         Number v{0};
-        for(size_t i = 0; i < n_reps; ++i){
-            v += test_func(begin(ad_B), end(ad_B), begin(ad_d), end(ad_d), 
-                           ad_wk, false, m);
-            v += test_func(begin(ad_B), end(ad_B), begin(ad_a), end(ad_a), ad_wk, 
-                           true, n);
-        }
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func(begin(ad_B), end(ad_B), begin(ad_a), end(ad_a), 
+                           ad_wk, false, n);
+        v.propagateToStart();
+                       
+        return v.value();
+    };
+    
+    BENCHMARK("two Number iterators (trans)") {
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(a), end(a), ad_a);
+        cfaad::convertCollection(begin(d), end(d), ad_d);
+        cfaad::convertCollection(begin(B), end(B), ad_B);
+        
+        Number v{0};
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func(begin(ad_B), end(ad_B), begin(ad_a), end(ad_a), 
+                           ad_wk, true, n);
         v.propagateToStart();
                        
         return v.value();
