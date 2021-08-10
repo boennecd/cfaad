@@ -24,6 +24,7 @@ As long as this comment is preserved at the top of the file
 #include <iterator>
 #include <cstring>
 #include <utility>
+#include <stdexcept>
 
 namespace cfaad {
 
@@ -157,6 +158,9 @@ public:
 	template <size_t n>
 	T* emplace_back_multi()
 	{
+        static_assert(n <= block_size, 
+                      "requested number of elements is greater than the block size");
+        
 		//  No more space in current array
 		if (std::distance(next_space, last_space) <  static_cast
                 <typename std::iterator_traits<block_iter>::difference_type>(n))
@@ -181,6 +185,9 @@ public:
 		if (std::distance(next_space, last_space) < static_cast
                 <typename std::iterator_traits<block_iter>::difference_type>(n))
 		{
+            if(n > block_size)
+                throw std::runtime_error
+                    ("requested number of elements is greater than the block size");
 			nextblock();
 		}
 
