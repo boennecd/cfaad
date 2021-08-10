@@ -218,6 +218,126 @@ struct vectorOps {
                 of[i].setpAdjPtrs(j + n, *xf);
             }
     }
+    
+    /*
+     * computes the matrix vector product X.a where X is a n x n triangular 
+     * matrix and a is a n vector. The result is stored in the last argument 
+     * which needs to be iterator with space for at least n elements. The matrix 
+     * is in column-major order and only the non-zero elements are passed.
+     * 
+     * This is the version where the matrix is a T type whereas the vector is 
+     * for non-Ts. The last argument sets whether it is the X^T rather than X.
+     */
+    template<class I1, class I2, class I3>
+    static void trimat_vec_prod_Tmat(I1 xf, I2 af, I2 al, I3 of, bool trans){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(!is_it_value_type<I2, T>::value,
+                      "Second iterator is to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al));
+        
+        if(trans)
+            for(size_t j = 0; j < n; ++j, ++of){
+                of->createNode(j + 1);
+                of->myValue = 0;
+                for(size_t i = 0; i <= j; ++i, ++xf){
+                    of->myValue += xf->value() * af[i];
+                    of->setpDerivatives(i, af[i]);
+                    of->setpAdjPtrs(i, *xf);
+                }
+            }
+        else 
+            for(size_t j = 0; j < n; ++j){
+                of[j].createNode(n - j);
+                of[j].myValue = 0;
+                size_t p_idx{j};
+                for(size_t i = 0; i <= j; ++i, ++xf, --p_idx){
+                    of[i].myValue += xf->value() * af[j];
+                    of[i].setpDerivatives(p_idx, af[j]);
+                    of[i].setpAdjPtrs(p_idx, *xf);
+                }
+            }
+    }
+    
+    /**
+     * the same as trimat_vec_prod_Tmat but where the first argument is for 
+     * non-Ts and the second argument is for Ts.
+     */
+    template<class I1, class I2, class I3>
+    static void trimat_vec_prod_Tvec(I1 xf, I2 af, I2 al, I3 of, bool trans){
+        static_assert(!is_it_value_type<I1, T>::value,
+                      "First iterator is to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al));
+        
+        if(trans)
+            for(size_t j = 0; j < n; ++j, ++of){
+                of->createNode(j + 1);
+                of->myValue = 0;
+                for(size_t i = 0; i <= j; ++i, ++xf){
+                    of->myValue += *xf * af[i].value();
+                    of->setpDerivatives(i, *xf);
+                    of->setpAdjPtrs(i, af[i]);
+                }
+            }
+        else 
+            for(size_t j = 0; j < n; ++j){
+                of[j].createNode(n - j);
+                of[j].myValue = 0;
+                size_t p_idx{j};
+                for(size_t i = 0; i <= j; ++i, ++xf, --p_idx){
+                    of[i].myValue += *xf * af[j].value();
+                    of[i].setpDerivatives(p_idx, *xf);
+                    of[i].setpAdjPtrs(p_idx, af[j]);
+                }
+            }
+    }
+    
+    /// the same as trimat_vec_prod_Tmat but where both iterators are for Ts.
+    template<class I1, class I2, class I3>
+    static void trimat_vec_prod_identical(I1 xf, I2 af, I2 al, I3 of, bool trans){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        static_assert(is_it_value_type<I3, T>::value,
+                      "Third iterators is not to Ts");
+                      
+        const size_t n = static_cast<size_t>(std::distance(af, al));
+        
+        if(trans)
+            for(size_t j = 0; j < n; ++j, ++of){
+                of->createNode(2 * (j + 1));
+                of->myValue = 0;
+                for(size_t i = 0; i <= j; ++i, ++xf){
+                    of->myValue += xf->value() * af[i].value();
+                    of->setpDerivatives(i, xf->value());
+                    of->setpAdjPtrs(i, af[i]);
+                    of->setpDerivatives(i + j + 1, af[i].value());
+                    of->setpAdjPtrs(i + j + 1, *xf);
+                }
+            }
+        else 
+            for(size_t j = 0; j < n; ++j){
+                of[j].createNode(2 * (n - j));
+                of[j].myValue = 0;
+                size_t p_idx{j};
+                for(size_t i = 0; i <= j; ++i, ++xf, --p_idx){
+                    of[i].myValue += xf->value() * af[j].value();
+                    of[i].setpDerivatives(p_idx, xf->value());
+                    of[i].setpAdjPtrs(p_idx, af[j]);
+                    of[i].setpDerivatives(p_idx + n - i, af[j].value());
+                    of[i].setpAdjPtrs(p_idx + n - i, *xf);
+                }
+            }
+    }
 };
 
 } // namespace cfaad

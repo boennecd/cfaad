@@ -16,15 +16,15 @@ V test_func(T1 b1, T1 e1, T2 b2)
     return exp(v);
 }
 
-std::vector<double> v1 { 1, 2, 3, 4, 5 },
-                    v2 { 2, 1, 2, 1, 0 };
+const std::vector<double> v1 { 1, 2, 3, 4, 5 },
+                          v2 { 2, 1, 2, 1, 0 };
 Number n1[5], n2[5];
 
 constexpr double true_val{54.5981500331442}, 
                       eps{1e-10};
 }
 
-TEST_CASE("cfaad::dotProd gives the righ value") {
+TEST_CASE("cfaad::dotProd gives the right value") {
     SECTION("gives the right value with double iterators"){
         REQUIRE(test_func<double>(v1.begin(), v1.end(), v2.begin()) 
             == Approx(true_val).epsilon(eps));
@@ -71,7 +71,7 @@ TEST_CASE("cfaad::dotProd benchmark"){
     BENCHMARK("two double iterators"){
         double v{};
         for(size_t i = 0; i < n_reps; ++i)
-            v+= test_func<double>(v1.begin(), v1.end(), v2.begin());
+            v += test_func<double>(v1.begin(), v1.end(), v2.begin());
         
         return v;
     };
@@ -82,7 +82,7 @@ TEST_CASE("cfaad::dotProd benchmark"){
         
         Number v{0};
         for(size_t i = 0; i < n_reps; ++i)
-            v+= test_func<Number>(v1.begin(), v1.end(), n2);
+            v += test_func<Number>(v1.begin(), v1.end(), n2);
         v.propagateToStart();
         
         return v.value();
@@ -95,11 +95,9 @@ TEST_CASE("cfaad::dotProd benchmark"){
         
         Number v{0};
         for(size_t i = 0; i < n_reps; ++i)
-            v+= test_func<Number>(n1, n1 + v1.size(), n2);
+            v += test_func<Number>(n1, n1 + v1.size(), n2);
         v.propagateToStart();
         
         return v.value();
     };
 }
-
-

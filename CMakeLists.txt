@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8) 
 project (cfaad) 
 
-set(CMAKE_CXX_FLAGS "-std=gnu++17 -Wall -Wclobbered -Wdeprecated -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Wuninitialized -Wshift-negative-value -Wunused-but-set-parameter -Wlto-type-mismatch -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-parentheses -Wodr -Wconversion -Wsign-conversion")
+set(CMAKE_CXX_FLAGS "-std=gnu++17 -O3 -Wall -Wclobbered -Wdeprecated -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Wuninitialized -Wshift-negative-value -Wunused-but-set-parameter -Wlto-type-mismatch -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-parentheses -Wodr -Wconversion -Wsign-conversion")
 
 include_directories("include")
 file(GLOB lib_headers "include/*.h")
