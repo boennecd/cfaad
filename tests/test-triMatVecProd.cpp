@@ -15,12 +15,7 @@ typename std::iterator_traits<I3>::value_type test_func
 {
     const size_t n_ele{static_cast<size_t>(std::distance(af, al))};
     cfaad::triMatVecProd(xf, af, al, of, trans);
-    
-    typename std::iterator_traits<I3>::value_type out{0.};
-    for(size_t i = 0; i < n_ele; ++i)
-        out += of[i] * of[i];
-    
-    return out;
+    return cfaad::dotProd(of, of + n_ele, of);
 }
 
 constexpr size_t n{5}, 

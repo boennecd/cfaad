@@ -19,16 +19,13 @@ struct vectorOps {
 
         T res;
         res.createNode(static_cast<size_t>(std::distance(begin, end)));
-
-        double val{};
-        size_t i{};
-        for(; begin != end; ++begin, ++i){
-            val += begin->value();
+        res.myValue = 0;
+        for(size_t i = 0; begin != end; ++begin, ++i){
+            res.myValue += begin->value();
             res.setpDerivatives(i, 1.);
             res.setpAdjPtrs(i, *begin);
         }
 
-        res.myValue = val;
         return res;
     }
 
@@ -42,16 +39,13 @@ struct vectorOps {
 
         T res;
         res.createNode(static_cast<size_t>(std::distance(f1, l1)));
-
-        double val{};
-        size_t i{};
-        for(; f1 != l1; ++f1, ++f2, ++i){
-          val += f1->value() * *f2;
+        res.myValue = 0;
+        for(size_t i = 0; f1 != l1; ++f1, ++f2, ++i){
+          res.myValue += f1->value() * *f2;
           res.setpDerivatives(i, *f2);
           res.setpAdjPtrs(i, *f1);
         }
 
-        res.myValue = val;
         return res;
     }
 
@@ -62,22 +56,42 @@ struct vectorOps {
                       "First iterator is not to Ts");
         static_assert(is_it_value_type<I2, T>::value,
                       "Second iterator is not to Ts");
-
+                      
         T res;
         const size_t n{static_cast<size_t>(std::distance(f1, l1))};
         res.createNode(2 * n);
-
-        double val{};
-        size_t i{};
-        for(; f1 != l1; ++f1, ++f2, ++i){
-            val += f1->value() * f2->value();
+        res.myValue = 0;
+        for(size_t i = 0; f1 != l1; ++f1, ++f2, ++i){
+            res.myValue += f1->value() * f2->value();
             res.setpDerivatives(i, f2->value());
             res.setpAdjPtrs(i, *f1);
             res.setpDerivatives(i + n, f1->value());
             res.setpAdjPtrs(i + n, *f2);
         }
 
-        res.myValue = val;
+        return res;
+    }
+    
+    /// special case of with two T iterators of the same type
+    template<class I1>
+    static T dot_product_identical_it(I1 f1, I1 l1, I1 f2){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+                      
+        if(f1 != f2)
+            return dot_product_identical(f1, l1, f2);
+                      
+        // special case where the iterators are the same
+        T res;
+        const size_t n{static_cast<size_t>(std::distance(f1, l1))};        
+        res.createNode(n);
+        res.myValue = 0;
+        for(size_t i = 0; f1 != l1; ++f1, ++i){
+            res.myValue += f1->value() * f1->value();
+            res.setpDerivatives(i, 2 * f1->value());
+            res.setpAdjPtrs(i, *f1);
+        }
+
         return res;
     }
     

@@ -21,13 +21,19 @@ const std::vector<double> v1 { 1, 2, 3, 4, 5 },
 Number n1[5], n2[5];
 
 constexpr double true_val{54.5981500331442}, 
-                      eps{1e-10};
+                      eps{1e-10},
+            true_val_self{1};
 }
 
 TEST_CASE("cfaad::dotProd gives the right value") {
     SECTION("gives the right value with double iterators"){
         REQUIRE(test_func<double>(v1.begin(), v1.end(), v2.begin()) 
             == Approx(true_val).epsilon(eps));
+    }
+    
+    SECTION("gives the right value a double iterator (self)"){
+        REQUIRE(test_func<double>(v2.begin(), v2.end(), v2.begin()) 
+            == Approx(true_val_self).epsilon(eps));
     }
     
     SECTION("gives the right value with double/Number iterators"){
@@ -56,12 +62,26 @@ TEST_CASE("cfaad::dotProd gives the right value") {
         cfaad::convertCollection(v2.begin(), v2.end(), n2);
         
         Number res = test_func<Number>(n1, n1 + v1.size(), n2);
+        REQUIRE(res.value() == Approx(true_val).epsilon(eps));
         
         res.propagateToStart();
         for(size_t i = 0; i < v2.size(); ++i)
             REQUIRE(n1[i].adjoint() == Approx(v2[i] * true_val).epsilon(eps));
         for(size_t i = 0; i < v1.size(); ++i)
             REQUIRE(n2[i].adjoint() == Approx(v1[i] * true_val).epsilon(eps));
+    }
+    
+    SECTION("gives the right value a Number iterator (self)"){
+        Number::tape->rewind();
+        cfaad::convertCollection(v2.begin(), v2.end(), n2);
+        
+        Number res = test_func<Number>(n2, n2 + v2.size(), n2);
+        REQUIRE(res.value() == Approx(true_val_self).epsilon(eps));
+        
+        res.propagateToStart();
+        for(size_t i = 0; i < v2.size(); ++i)
+            REQUIRE(n2[i].adjoint() 
+                == Approx(2 * v2[i] * true_val_self).epsilon(eps));
     }
 }
 
@@ -72,6 +92,14 @@ TEST_CASE("cfaad::dotProd benchmark"){
         double v{};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<double>(v1.begin(), v1.end(), v2.begin());
+        
+        return v;
+    };
+    
+    BENCHMARK("one double iterator (self)"){
+        double v{};
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func<double>(v2.begin(), v2.end(), v2.begin());
         
         return v;
     };
@@ -96,6 +124,18 @@ TEST_CASE("cfaad::dotProd benchmark"){
         Number v{0};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<Number>(n1, n1 + v1.size(), n2);
+        v.propagateToStart();
+        
+        return v.value();
+    };
+    
+    BENCHMARK("one Number iterator (self)"){
+        Number::tape->rewind();
+        cfaad::convertCollection(v2.begin(), v2.end(), n2);
+        
+        Number v{0};
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func<Number>(n2, n2 + v2.size(), n2);
         v.propagateToStart();
         
         return v.value();

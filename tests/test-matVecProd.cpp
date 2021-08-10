@@ -19,11 +19,9 @@ typename std::iterator_traits<I3>::value_type test_func
 {
     cfaad::matVecProd(xf, xl, af, al, of, trans);
     
-    typename std::iterator_traits<I3>::value_type out{0.};
     for(size_t i = 0; i < n_ele; ++i)
-        out += sqrt(1 + exp(of[i]));
-    
-    return out;
+        of[i] = sqrt(1 + exp(of[i]));
+    return cfaad::sum(of, of + n_ele);
 }
 
 constexpr size_t m{4}, n{5};

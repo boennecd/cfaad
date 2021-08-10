@@ -70,6 +70,16 @@ struct VecDotProdOp<I1, I2, Number, Number> {
         return Number::dot_product_identical(first1, last1, first2);
     }
 };
+
+template<class I1>
+struct VecDotProdOp<I1, I1, Number, Number> {
+    using returnT = Number;
+    /// dot product with two T iterators of the same type
+    static Number dot_prodcut
+        (I1 first1, I1 last1, I1 first2){
+        return Number::dot_product_identical_it(first1, last1, first2);
+    }
+};
 } // namespace implementation
 
 template<class I1, class I2>
