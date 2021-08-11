@@ -464,6 +464,170 @@ struct vectorOps {
         
         return res;
     }
+    
+    /**
+     * Computes tr(A^{-1}B) for two symmetric square matrices using a 
+     * pre-computed Cholesky decomposition. This is the version where the A 
+     * iterator is for Ts and the B iterator is for non-Ts */
+    template<class I1, class I2>
+    static T trInvMatMat_first(I1 A, I2 B, const CholFactorization &chol){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(!is_it_value_type<I2, T>::value,
+                      "Second iterator is to Ts");
+        
+        const size_t n{static_cast<size_t>(chol.n)}, 
+                    nn{n * n};
+        double *wk_mem1{T::tape->getWKMem(nn)},
+               *wk_mem2{T::tape->getWKMem(nn)};
+               
+        // compute the retun value
+        {
+            I2 Bi = B;
+            for(size_t i = 0; i < nn; ++i, ++Bi)
+                wk_mem1[i] = *Bi;
+        }
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem1 + i * n); // A^{-1}B
+        
+        double res_val{0};
+        {
+            double *diag = wk_mem1;
+            for(size_t i = 0; i < n; ++i, diag += n + 1)
+                res_val += *diag;
+        }
+        
+        // compute and set the partial derivatives
+        for(size_t j = 0; j < n; ++j) // transpose
+            for(size_t i = 0; i < n; ++i)
+                wk_mem2[i + j * n] = wk_mem1[j + i * n];
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem2 + i * n); // A^{-1}BA^{-1}
+        
+        T res;
+        res.myValue = res_val;
+        res.createNode(nn);
+        for(size_t i = 0; i < nn; ++i, ++A){
+            res.setpDerivatives(i, -wk_mem2[i]);
+            res.setpAdjPtrs(i, *A);
+        }
+        
+        return res;
+    }
+    
+    /**
+     * same as trInvMatMat_first where the second argument i second iterators is
+     * for Ts but the first is not */
+    template<class I1, class I2>
+    static T trInvMatMat_second(I1 A, I2 B, const CholFactorization &chol){
+        static_assert(!is_it_value_type<I1, T>::value,
+                      "First iterator is to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        
+        const size_t n{static_cast<size_t>(chol.n)}, 
+                    nn{n * n};
+        double *wk_mem{T::tape->getWKMem(nn)};
+               
+        // compute the retun value
+        {
+            I2 Bi = B;
+            for(size_t i = 0; i < nn; ++i, ++Bi)
+                wk_mem[i] = Bi->value();
+        }
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem + i * n); // A^{-1}B
+        
+        double res_val{0};
+        {
+            double *diag = wk_mem;
+            for(size_t i = 0; i < n; ++i, diag += n + 1)
+                res_val += *diag;
+        }
+        
+        // set the partial derivatives
+        T res;
+        res.myValue = res_val;
+        res.createNode(nn);
+        double const *A_inv{chol.get_inv()};
+        using it_diff_type = typename std::iterator_traits<I2>::difference_type;
+        for(size_t j = 0; j < n; ++j, ++A_inv){
+            I2 Bi{B + static_cast<it_diff_type>(j * n)};
+            I2 Bj{B + static_cast<it_diff_type>(j)};
+            for(size_t i = 0; i < j; ++i, ++A_inv, ++Bi, Bj += it_diff_type(n)){
+                res.setpDerivatives(i + j * n, *A_inv);
+                res.setpDerivatives(j + i * n, *A_inv);
+                res.setpAdjPtrs(i + j * n, *Bi);
+                res.setpAdjPtrs(j + i * n, *Bj);
+            }
+            res.setpDerivatives(j * (n + 1), *A_inv);
+            res.setpAdjPtrs(j * (n + 1), *Bi);
+        }
+        
+        return res;
+    }
+    
+    /// same as trInvMatMat_first but where both iterators are to Ts
+    template<class I1, class I2>
+    static T trInvMatMat_identical(I1 A, I2 B, const CholFactorization &chol){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+        
+        const size_t n{static_cast<size_t>(chol.n)}, 
+                    nn{n * n};
+        double *wk_mem1{T::tape->getWKMem(nn)},
+               *wk_mem2{T::tape->getWKMem(nn)};
+               
+        // compute the retun value
+        {
+            I2 Bi = B;
+            for(size_t i = 0; i < nn; ++i, ++Bi)
+                wk_mem1[i] = Bi->value();
+        }
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem1 + i * n); // A^{-1}B
+        
+        double res_val{0};
+        {
+            double *diag = wk_mem1;
+            for(size_t i = 0; i < n; ++i, diag += n + 1)
+                res_val += *diag;
+        }
+        
+        // compute and set the partial derivatives
+        for(size_t j = 0; j < n; ++j) // transpose
+            for(size_t i = 0; i < n; ++i)
+                wk_mem2[i + j * n] = wk_mem1[j + i * n];
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem2 + i * n); // A^{-1}BA^{-1}
+        
+        T res;
+        res.myValue = res_val;
+        res.createNode(2 * nn);
+        double const *A_inv{chol.get_inv()};
+        using it_diff_type = typename std::iterator_traits<I2>::difference_type;
+        for(size_t j = 0; j < n; ++j, ++A_inv){
+            I2 Bi{B + static_cast<it_diff_type>(j * n)};
+            I2 Bj{B + static_cast<it_diff_type>(j)};
+            for(size_t i = 0; i < j; ++i, ++A_inv, ++Bi, Bj += it_diff_type(n)){
+                res.setpDerivatives(i + j * n, *A_inv);
+                res.setpDerivatives(j + i * n, *A_inv);
+                res.setpAdjPtrs(i + j * n, *Bi);
+                res.setpAdjPtrs(j + i * n, *Bj);
+            }
+            res.setpDerivatives(j * (n + 1), *A_inv);
+            res.setpAdjPtrs(j * (n + 1), *Bi);
+        }
+        
+        for(size_t i = 0; i < nn; ++i, ++A){
+            res.setpDerivatives(i + nn, -wk_mem2[i]);
+            res.setpAdjPtrs(i + nn, *A);
+        }
+        
+        return res;
+    }
 
 #endif // if AADLAPACK
 };

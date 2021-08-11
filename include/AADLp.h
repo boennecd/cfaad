@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #if AADLAPACK
 
@@ -14,41 +15,67 @@ extern "C" {
     (const char * /* uplo */, const int * /* n */, double * /* ap */, 
      int * /* info */ /* TODO: handle the length of the char argument */);
      
-    /// Either performs a forward or backward solve
+    /// either performs a forward or backward solve
     void dtpsv_
     (const char * /* uplo */, const char * /* trans */, const char * /* diag */,
      const int * /* n */, const double * /* ap */, double * /* x */, 
-     const int * /* incx */
+     const int * /* incx */ 
      /* TODO: handle the length of the char arguments */);
+     
+    /// computes the inverse from the Choleksy factorization
+    void dpptri_
+    (const char * /* uplo */, const int * /* n */, double *ap, 
+     int * /* info */ /* TODO: handle the length of the char arguments */);
 }
 
 /// returns working memory of a given size
 double *getLPWKMem(const size_t);
     
 /// holds the Choleksy factorization of U^TU = X for a postive definite matrix
-struct CholFactorization {
+class CholFactorization {
+public:
     /// the dimension 
-    int n;
-    /// the factorization
-    std::unique_ptr<double[]> factorization{new double[(n * (n + 1)) / 2]};
+    const int n;
+    /// default value for comp inv
+    static constexpr bool def_comp_inv{true};
     
     template<class I>
-    CholFactorization(I begin, const int n): n(n)
+    CholFactorization(I begin, const int n, const bool comp_inv = def_comp_inv): 
+    n{n}, 
+    mem{new double[comp_inv ? n * (n + 1) : (n * (n + 1)) / 2]},
+    factorization{mem.get()},
+    inverse{comp_inv ? factorization + (n * (n + 1))/2 : nullptr}
     {
         {
-            double * f = factorization.get();
+            double * f{factorization};
             for(int j = 0; j < n; ++j)
                 for(int i = 0; i <= j; ++i)
                     *f++ = begin[i + j * n];
         }
         
+        // compute the factorization
         int info{};
         char uplo{'U'};
-        dpptrf_(&uplo, &n, factorization.get(), &info);
+        dpptrf_(&uplo, &n, factorization, &info);
         
         if(info != 0)
             throw std::runtime_error
                 ("dpptrf failed with code " + std::to_string(info));
+                
+        if(!comp_inv)
+            return;
+                
+        // compute the inverse
+        std::copy(factorization, inverse, inverse);
+        dpptri_(&uplo, &n, inverse, &info);
+        if(info != 0)
+            throw std::runtime_error
+                ("dpptri failed with code " + std::to_string(info));
+    }
+    
+    /// returns a pointer to the inverse (upper triangle)
+    double const * get_inv() const {
+        return inverse;
     }
     
     /// computes either Ux = y or U^Tx = y
@@ -58,7 +85,7 @@ struct CholFactorization {
              diag{'N'};
         int incx{1};
         
-        dtpsv_(&uplo, &c_trans, &diag, &n, factorization.get(), x, &incx);
+        dtpsv_(&uplo, &c_trans, &diag, &n, factorization, x, &incx);
     }
     
     /// computes U^TUx = y
@@ -71,29 +98,39 @@ struct CholFactorization {
     template<class I, class V>
     struct get_chol_factorization {
         /// the general case
-        static CholFactorization get(I begin, const int n){
+        static CholFactorization get(I begin, const int n, bool const comp_inv){
             double * wk_mem{getLPWKMem(static_cast<size_t>(n * n))};
             for(int j = 0; j < n; ++j)
                 for(int i = 0; i <= j; ++i)
                     wk_mem[i + j * n] = begin[i + j * n].value();
                     
-            return CholFactorization(wk_mem, n);
+            return CholFactorization(wk_mem, n, comp_inv);
         }
     };
     
     template<class I>
     struct get_chol_factorization<I, double> {
         /// the special case with an iterator to doubles
-        static CholFactorization get(I begin, const int n){
-            return CholFactorization(begin, n);
+        static CholFactorization get(I begin, const int n, const bool comp_inv){
+            return CholFactorization(begin, n, comp_inv);
         }
     };
     
     /// returns the Choleksy factorization
     template<class I>
-    static CholFactorization getFactorization(I begin, const int n){
-        return get_chol_factorization<I, it_value_type<I> >::get(begin, n);
+    static CholFactorization getFactorization
+    (I begin, const int n, const bool comp_inv = def_comp_inv){
+        return get_chol_factorization<I, it_value_type<I> >
+            ::get(begin, n, comp_inv);
     }
+
+private:
+    /// memory
+    std::unique_ptr<double[]> mem;
+    /// the factorization
+    double * const factorization;
+    /// the inverse (in upper triangle)
+    double * const inverse;
 };
 
 } // namespace cfaad

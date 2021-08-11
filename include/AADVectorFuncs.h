@@ -223,7 +223,7 @@ struct quadFormInvOp {
         
         // compute the result
         for(size_t i = 0; i < n; ++i, ++a)
-            wk_mem[i] = static_cast<double>(*a);
+            wk_mem[i] = *a;
         chol.solveU(wk_mem, true); // U^{-T}a
         double res{0};
         for(size_t i = 0; i < n; ++i, ++wk_mem)
@@ -268,6 +268,70 @@ quadFormInv(I1 a, I2 B, const CholFactorization &chol){
     return implementation::quadFormInvOp
         <I1, I2, it_value_type<I1>, it_value_type<I2> >
         ::quad_form_inv(a, B, chol);
+}
+
+// the trace tr(A^{-1}B) for two quadratic matrices
+
+namespace implementation {
+template<class I1, class I2, class V1, class V2>
+struct trInvMatMatOp {
+    /// the general case
+    using returnT = double;
+    static double tr_invmat_mat(I1 A, I2 B, const CholFactorization &chol){
+        const size_t n{static_cast<size_t>(chol.n)}, 
+                    nn = n * n;
+        double *wk_mem{Number::tape->getWKMem(nn)};
+        
+        // compute the result
+        for(size_t i = 0; i < nn; ++i, ++B)
+            wk_mem[i] = *B;
+        for(size_t i = 0; i < n; ++i)
+            chol.solve(wk_mem + i * n); // A^{-1}B
+        
+        double res{0};
+        for(size_t i = 0; i < n; ++i, wk_mem += n + 1)
+            res += *wk_mem;
+            
+        return res;
+    }
+};
+
+template<class I1, class I2, class V2>
+struct trInvMatMatOp<I1, I2, Number, V2> {
+    using returnT = Number;
+    /// special case where the first iterator is to Ts
+    static Number tr_invmat_mat(I1 A, I2 B, const CholFactorization &chol){
+        return Number::trInvMatMat_first(A, B, chol);
+    }
+};
+
+template<class I1, class I2, class V1>
+struct trInvMatMatOp<I1, I2, V1, Number> {
+    using returnT = Number;
+    /// special case where the second iterator is to Ts
+    static Number tr_invmat_mat(I1 A, I2 B, const CholFactorization &chol){
+        return Number::trInvMatMat_second(A, B, chol);
+    }
+};
+
+template<class I1, class I2>
+struct trInvMatMatOp<I1, I2, Number, Number> {
+    using returnT = Number;
+    /// special case where the both iterators are to Ts
+    static Number tr_invmat_mat(I1 A, I2 B, const CholFactorization &chol){
+        return Number::trInvMatMat_identical(A, B, chol);
+    }
+};
+    
+} // namespace implementation
+
+template<class I1, class I2>
+typename implementation::trInvMatMatOp
+<I1, I2, it_value_type<I1>, it_value_type<I2> >::returnT
+trInvMatMat(I1 A, I2 B, const CholFactorization &chol){
+    return implementation::trInvMatMatOp
+        <I1, I2, it_value_type<I1>, it_value_type<I2> >
+        ::tr_invmat_mat(A, B, chol);
 }
 
 #endif // if AADLAPACK

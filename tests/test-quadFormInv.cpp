@@ -11,20 +11,30 @@ using cfaad::Number;
 #if AADLAPACK
 
 namespace {
+// version where the factorization is computed
+template<class V, class I1, class I2>
+V test_func(I1 af, I1 al, I2 xf, const cfaad::CholFactorization &fact)
+{
+    auto v = cfaad::quadFormInv(af, xf, fact);
+    return 3 * v;
+}
+    
 template<class V, class I1, class I2>
 V test_func(I1 af, I1 al, I2 xf)
 {
     const size_t n{static_cast<size_t>(std::distance(af, al))};
     cfaad::CholFactorization fact = cfaad::CholFactorization
-        ::getFactorization(xf, static_cast<int>(n));
+        ::getFactorization(xf, static_cast<int>(n), false);
         
-    auto v = cfaad::quadFormInv(af, xf, fact);
-    return 3 * v;
+    return test_func<V>(af, al, xf, fact);
 }
 
 constexpr size_t n{3};
 const std::vector<double> a{-0.29472044679056, -0.00576717274753696, 2.40465338885795},
                           B{5.69040694552746, 3.03532592432841, -3.67348520317816, 3.03532592432841, 14.4789126529084, -5.28937597574071, -3.67348520317816, -5.28937597574071, 10.7560066919034};
+
+const cfaad::CholFactorization pre_fact = 
+    cfaad::CholFactorization::getFactorization(B.begin(), static_cast<int>(n));
 
 std::vector<Number> ad_a = std::vector<Number>(n),
                     ad_B = std::vector<Number>(n * n);
@@ -112,6 +122,14 @@ TEST_CASE("cfaad::quadFormInv benchmark"){
         return v;
     };
     
+    BENCHMARK("two double iterators (pre-computed)"){
+        double v{};
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func<double>(a.begin(), a.end(), B.begin(), pre_fact);
+            
+        return v;
+    };
+    
     BENCHMARK("mat (double) x vec (Number)"){
         Number::tape->rewind();
         cfaad::convertCollection(a.begin(), a.end(), ad_a.begin());
@@ -144,6 +162,20 @@ TEST_CASE("cfaad::quadFormInv benchmark"){
         Number v{0};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<Number>(ad_a.begin(), ad_a.end(), ad_B.begin());
+            
+        v.propagateToStart();
+        return v.value();
+    };
+    
+    BENCHMARK("two Number iterators (pre-computed)"){
+        Number::tape->rewind();
+        cfaad::convertCollection(a.begin(), a.end(), ad_a.begin());
+        cfaad::convertCollection(B.begin(), B.end(), ad_B.begin());
+        
+        Number v{0};
+        for(size_t i = 0; i < n_reps; ++i)
+            v += test_func<Number>(ad_a.begin(), ad_a.end(), ad_B.begin(), 
+                                   pre_fact);
             
         v.propagateToStart();
         return v.value();
