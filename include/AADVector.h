@@ -2,13 +2,10 @@
 
 #include <iterator>
 #include <type_traits>
+#include "AADLp.h"
+#include <algorithm>
 
 namespace cfaad {
-template<class T>
-using it_value_type = typename std::iterator_traits<T>::value_type;
-
-template<class T, class U>
-using is_it_value_type = std::is_same<it_value_type<T>, U>;
 
 template<class T>
 struct vectorOps {
@@ -352,6 +349,123 @@ struct vectorOps {
                 }
             }
     }
+    
+#if AADLAPACK
+
+    /**
+     * computes the quadratic form a^TB^{-1}b where B is a symmetric positive 
+     * definite matrix where a Cholesky factorization has already been computed.
+     *
+     * Here, B is an iterator for Ts while a is an iterator for doubles.
+     */
+    template<class I1, class I2>
+    static T quadFormInv_TMat(I1 a, I2 B, const CholFactorization &chol){
+        static_assert(!is_it_value_type<I1, T>::value,
+                      "First iterator is to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+
+        const size_t n = static_cast<size_t>(chol.n);
+        double *wk_mem = T::tape->getWKMem(n);
+        
+        // compute the result
+        using I1_diff_type = typename std::iterator_traits<I1>::difference_type;
+        std::copy(a, a + I1_diff_type(n), wk_mem);
+        chol.solveU(wk_mem, true); // U^{-T}a
+        double out_value{};
+        for(size_t i = 0; i < n; ++i)
+            out_value += wk_mem[i] * wk_mem[i];
+            
+        /* compute the partial derivatives. These are given by 
+         * -B^{-1}aa^\topB^{-1} */
+        chol.solveU(wk_mem, false);
+        T res;
+        res.myValue = out_value;
+        res.createNode(n * n);
+        for(size_t j = 0; j < n; ++j)
+            for(size_t i = 0; i < n; ++i, ++B){
+                res.setpDerivatives(i + j * n, -wk_mem[i] * wk_mem[j]);
+                res.setpAdjPtrs(i + j * n, *B);
+            }
+        
+        return res;
+    }
+    
+    /// same as quadFormInv_TMat but where the vector is to Ts
+    template<class I1, class I2>
+    static T quadFormInv_TVec(I1 a, I2 B, const CholFactorization &chol){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(!is_it_value_type<I2, T>::value,
+                      "Second iterator is to Ts");
+
+        const size_t n = static_cast<size_t>(chol.n);
+        double *wk_mem = T::tape->getWKMem(n);
+        
+        // compute the result
+        {
+            I1 ai = a;
+            for(size_t i = 0; i < n; ++i, ++ai)
+                wk_mem[i] = ai->value();
+        }
+        chol.solveU(wk_mem, true); // U^{-T}a
+        double out_value{};
+        for(size_t i = 0; i < n; ++i)
+            out_value += wk_mem[i] * wk_mem[i];
+            
+        // compute the partial derivatives. These are given by 2 * B^{-1}a
+        chol.solveU(wk_mem, false);
+        T res;
+        res.myValue = out_value;
+        res.createNode(n);
+        for(size_t i = 0; i < n; ++i, ++a){
+            res.setpDerivatives(i, 2 * wk_mem[i]);
+            res.setpAdjPtrs(i, *a);
+        }
+        
+        return res;
+    }
+    
+    /// same as quadFormInv_TMat but with two iterators to Ts
+    template<class I1, class I2>
+    static T quadFormInv_identical(I1 a, I2 B, const CholFactorization &chol){
+        static_assert(is_it_value_type<I1, T>::value,
+                      "First iterator is not to Ts");
+        static_assert(is_it_value_type<I2, T>::value,
+                      "Second iterator is not to Ts");
+
+        const size_t n = static_cast<size_t>(chol.n);
+        double *wk_mem = T::tape->getWKMem(n);
+        
+        // compute the result
+        {
+            I1 ai = a;
+            for(size_t i = 0; i < n; ++i, ++ai)
+                wk_mem[i] = ai->value();
+        }
+        chol.solveU(wk_mem, true); // U^{-T}a
+        double out_value{};
+        for(size_t i = 0; i < n; ++i)
+            out_value += wk_mem[i] * wk_mem[i];
+            
+        // compute the partial derivatives
+        chol.solveU(wk_mem, false);
+        T res;
+        res.myValue = out_value;
+        res.createNode(n * (n + 1));
+        for(size_t j = 0; j < n; ++j, ++a){
+            res.setpDerivatives(j, 2 * wk_mem[j]);
+            res.setpAdjPtrs(j, *a);
+            for(size_t i = 0; i < n; ++i, ++B){
+                res.setpDerivatives(i + (j + 1) * n, -wk_mem[i] * wk_mem[j]);
+                res.setpAdjPtrs(i + (j + 1) * n, *B);
+            }
+        }
+        
+        return res;
+    }
+
+#endif // if AADLAPACK
 };
 
 } // namespace cfaad

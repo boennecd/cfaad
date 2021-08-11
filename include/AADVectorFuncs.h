@@ -32,7 +32,7 @@ it_value_type<I> sum(I begin, I end){
 namespace implementation {
 template<class I1, class I2, class V1, class V2>
 struct VecDotProdOp {
-  using returnT = V1;
+    using returnT = V1;
     /// general case
     static V1 dot_prodcut
     (I1 first1, I1 last1, I2 first2){
@@ -209,5 +209,67 @@ void triMatVecProd(I1 xf, I2 af, I2 al, I3 of, bool trans){
     (xf, af, al, of, trans);
 }
 
+#if AADLAPACK
+// the quadratic form a^TB^{-1}a
+
+namespace implementation {
+template<class I1, class I2, class V1, class V2>
+struct quadFormInvOp {
+    /// the general case
+    using returnT = double;
+    static double quad_form_inv(I1 a, I2 B, const CholFactorization &chol){
+        const size_t n{static_cast<size_t>(chol.n)};
+        double *wk_mem{Number::tape->getWKMem(n)};
+        
+        // compute the result
+        for(size_t i = 0; i < n; ++i, ++a)
+            wk_mem[i] = static_cast<double>(*a);
+        chol.solveU(wk_mem, true); // U^{-T}a
+        double res{0};
+        for(size_t i = 0; i < n; ++i, ++wk_mem)
+            res += *wk_mem * *wk_mem;
+            
+        return res;
+    }
+};
+
+template<class I1, class I2, class V2>
+struct quadFormInvOp<I1, I2, Number, V2> {
+    /// special case where the vector is a Number iterator
+    using returnT = Number;
+    static Number quad_form_inv(I1 a, I2 B, const CholFactorization &chol){
+        return Number::quadFormInv_TVec(a, B, chol);
+    }
+};
+
+template<class I1, class I2, class V1>
+struct quadFormInvOp<I1, I2, V1, Number> {
+    /// special case where the matrix is a Number iterator
+    using returnT = Number;
+    static Number quad_form_inv(I1 a, I2 B, const CholFactorization &chol){
+        return Number::quadFormInv_TMat(a, B, chol);
+    }
+};
+
+template<class I1, class I2>
+struct quadFormInvOp<I1, I2, Number, Number> {
+    /// special case where the both iterators are for Numbers
+    using returnT = Number;
+    static Number quad_form_inv(I1 a, I2 B, const CholFactorization &chol){
+        return Number::quadFormInv_identical(a, B, chol);
+    }
+};
+} // namespace implementation
+
+template<class I1, class I2>
+typename implementation::quadFormInvOp
+<I1, I2, it_value_type<I1>, it_value_type<I2> >::returnT
+quadFormInv(I1 a, I2 B, const CholFactorization &chol){
+    return implementation::quadFormInvOp
+        <I1, I2, it_value_type<I1>, it_value_type<I2> >
+        ::quad_form_inv(a, B, chol);
+}
+
+#endif // if AADLAPACK
 
 } // namespace cfadd

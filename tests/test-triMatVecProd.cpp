@@ -5,10 +5,10 @@
 #include <AAD.h>
 #include <array>
 
-namespace {
 using Catch::Approx;
 using cfaad::Number;
-    
+
+namespace {
 template<class I1, class I2, class I3>
 typename std::iterator_traits<I3>::value_type test_func
 (I1 xf, I2 af, I2 al, I3 of, bool trans)
