@@ -38,6 +38,10 @@ public:
     const int n;
     /// default value for comp inv
     static constexpr bool def_comp_inv{true};
+    /// returns true if the inverse is computed
+    bool has_inverse() const {
+        return inverse;
+    }
     
     template<class I>
     CholFactorization(I begin, const int n, const bool comp_inv = def_comp_inv): 
@@ -72,6 +76,25 @@ public:
             throw std::runtime_error
                 ("dpptri failed with code " + std::to_string(info));
     }
+    
+    CholFactorization(const CholFactorization &x):
+    n{x.n}, 
+    mem{new double[x.has_inverse() ? n * (n + 1) : (n * (n + 1)) / 2]},
+    factorization{mem.get()},
+    inverse{x.has_inverse() ? factorization +  (n * (n + 1)) / 2 : nullptr}
+    {
+        std::copy(x.factorization, x.factorization + (n * (n + 1)) / 2,
+                  factorization);
+        if(x.has_inverse())
+            std::copy(x.inverse, x.inverse + (n * (n + 1)) / 2, 
+                      inverse);
+    }
+    
+    CholFactorization(CholFactorization &&x):
+    n{x.n},
+    mem{x.mem.release()},
+    factorization{x.factorization},
+    inverse{x.inverse} { }
     
     /// returns a pointer to the inverse (upper triangle)
     double const * get_inv() const {
