@@ -628,6 +628,37 @@ struct vectorOps {
         
         return res;
     }
+    
+    /**
+     * computes the log determinant of a symmetric positive definte matrix
+     * using a pre-computed Choleksy decomposition */
+    template<class I>
+    static T logDeter(I begin, const CholFactorization &chol){
+        static_assert(is_it_value_type<I, T>::value,
+                      "Iterator is not to Ts");
+            
+        const size_t n{static_cast<size_t>(chol.n)};
+        T res;
+        res.myValue = log(chol.determinant());
+        res.createNode(n * n);
+        
+        double const *M_inv{chol.get_inv()};
+        using it_diff_type = typename std::iterator_traits<I>::difference_type;
+        for(size_t j = 0; j < n; ++j, ++M_inv){
+            I Mi{begin + static_cast<it_diff_type>(j * n)};
+            I Mj{begin + static_cast<it_diff_type>(j)};
+            for(size_t i = 0; i < j; ++i, ++M_inv, ++Mi, Mj += it_diff_type(n)){
+                res.setpDerivatives(i + j * n, *M_inv);
+                res.setpDerivatives(j + i * n, *M_inv);
+                res.setpAdjPtrs(i + j * n, *Mi);
+                res.setpAdjPtrs(j + i * n, *Mj);
+            }
+            res.setpDerivatives(j * (n + 1), *M_inv);
+            res.setpAdjPtrs(j * (n + 1), *Mi);
+        }
+        
+        return res;
+    }
 
 #endif // if AADLAPACK
 };

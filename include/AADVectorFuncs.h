@@ -334,6 +334,35 @@ trInvMatMat(I1 A, I2 B, const CholFactorization &chol){
         ::tr_invmat_mat(A, B, chol);
 }
 
+// the log determinant
+
+namespace implementation {
+template<class I, class V>
+struct logDeterOp {
+    using returnT = double;
+    /// the general case
+    static double log_deter(I begin, const CholFactorization &chol){
+        return log(chol.determinant());
+    }
+};
+
+template<class I>
+struct logDeterOp<I, Number> {
+    using returnT = Number;
+    /// special case where the iterator is for Numbers
+    static Number log_deter(I begin, const CholFactorization &chol){
+        return Number::logDeter(begin, chol);
+    }
+};
+} // namespace implementation
+
+template<class I>
+typename implementation::logDeterOp<I, it_value_type<I> >::returnT
+logDeter(I begin, const CholFactorization &chol){
+    return implementation::logDeterOp<I, it_value_type<I> >
+        ::log_deter(begin, chol);
+}
+
 #endif // if AADLAPACK
 
 } // namespace cfadd

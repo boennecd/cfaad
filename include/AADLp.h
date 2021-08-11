@@ -78,6 +78,15 @@ public:
         return inverse;
     }
     
+    /// computes the determinant of the original matrix
+    double determinant() const {
+        double out{1};
+        const double *v{factorization};
+        for(int i = 0; i < n; ++i, v += i + 1)
+            out *= *v;
+        return out * out;
+    }
+    
     /// computes either Ux = y or U^Tx = y
     void solveU(double *x, const bool trans) const {
         char uplo{'U'}, 
