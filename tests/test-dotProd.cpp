@@ -86,7 +86,7 @@ TEST_CASE("cfaad::dotProd gives the right value") {
 }
 
 TEST_CASE("cfaad::dotProd benchmark"){
-    constexpr size_t n_reps{100};
+    constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators"){
         double v{};

@@ -102,7 +102,7 @@ TEST_CASE("cfaad::quadFormInv gives the right value") {
 }
 
 TEST_CASE("cfaad::quadFormInv benchmark"){
-    constexpr size_t n_reps{100};
+    constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators"){
         double v{};

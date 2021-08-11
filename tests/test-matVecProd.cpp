@@ -162,7 +162,7 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
 }
 
 TEST_CASE("cfaad::matVecProd benchmark"){
-    constexpr size_t n_reps{100};
+    constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators") {
         double v{};
