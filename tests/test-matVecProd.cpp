@@ -161,7 +161,7 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::matVecProd benchmark"){
+TEST_CASE("cfaad::matVecProd benchmark (10x matrix-vector products with a 4x5 matrix)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators") {

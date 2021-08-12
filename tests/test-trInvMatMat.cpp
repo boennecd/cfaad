@@ -113,7 +113,7 @@ TEST_CASE("cfaad::trInvMatMat gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::trInvMatMat benchmark"){
+TEST_CASE("cfaad::trInvMatMat benchmark (10x trace(A^{-1}B) with two 3x3 matrices)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators"){
@@ -124,7 +124,7 @@ TEST_CASE("cfaad::trInvMatMat benchmark"){
         return v;
     };
     
-    BENCHMARK("two double iterators (pre-computed)"){
+    BENCHMARK("two double iterators (pre-computed factorization)"){
         double v{};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<double>(A.begin(), A.end(), B.begin(), pre_fact);
@@ -169,7 +169,7 @@ TEST_CASE("cfaad::trInvMatMat benchmark"){
         return res.value();
     };
     
-    BENCHMARK("Numbers and Numbers (pre-computed)"){
+    BENCHMARK("Numbers and Numbers (pre-computed factorization)"){
         Number::tape->rewind();
         cfaad::convertCollection(A.begin(), A.end(), ad_A.begin());
         cfaad::convertCollection(B.begin(), B.end(), ad_B.begin());

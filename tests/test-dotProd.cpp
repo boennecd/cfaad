@@ -85,7 +85,7 @@ TEST_CASE("cfaad::dotProd gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::dotProd benchmark"){
+TEST_CASE("cfaad::dotProd benchmark (10x with 5D vectors)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators"){

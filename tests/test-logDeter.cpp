@@ -77,7 +77,7 @@ TEST_CASE("cfaad::logDeter gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::logDeter benchmark"){
+TEST_CASE("cfaad::logDeter benchmark (10x with a 4x4 matrix)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("double iterator"){
@@ -88,7 +88,7 @@ TEST_CASE("cfaad::logDeter benchmark"){
         return v;
     };
     
-    BENCHMARK("double iterator (pre-computed)"){
+    BENCHMARK("double iterator (pre-computed factorization)"){
         double v{};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<double>(A.begin(), A.end(), pre_fact);
@@ -108,7 +108,7 @@ TEST_CASE("cfaad::logDeter benchmark"){
         return res.value();
     };
     
-    BENCHMARK("Number iterator  (pre-computed)"){
+    BENCHMARK("Number iterator  (pre-computed factorization)"){
         Number::tape->rewind();
         cfaad::convertCollection(A.begin(), A.end(), ad_A.begin());
         

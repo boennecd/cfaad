@@ -111,7 +111,7 @@ TEST_CASE("cfaad::quadFormInv gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::quadFormInv benchmark"){
+TEST_CASE("cfaad::quadFormInv benchmark (10x aB^{-1}a with a 3x3 matrix)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators"){
@@ -122,7 +122,7 @@ TEST_CASE("cfaad::quadFormInv benchmark"){
         return v;
     };
     
-    BENCHMARK("two double iterators (pre-computed)"){
+    BENCHMARK("two double iterators (pre-computed factorization)"){
         double v{};
         for(size_t i = 0; i < n_reps; ++i)
             v += test_func<double>(a.begin(), a.end(), B.begin(), pre_fact);
@@ -167,7 +167,7 @@ TEST_CASE("cfaad::quadFormInv benchmark"){
         return v.value();
     };
     
-    BENCHMARK("two Number iterators (pre-computed)"){
+    BENCHMARK("two Number iterators (pre-computed factorization)"){
         Number::tape->rewind();
         cfaad::convertCollection(a.begin(), a.end(), ad_a.begin());
         cfaad::convertCollection(B.begin(), B.end(), ad_B.begin());

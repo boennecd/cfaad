@@ -39,7 +39,7 @@ TEST_CASE("cfaad::sum gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::sum benchmark") {
+TEST_CASE("cfaad::sum benchmark (10x with a 10D vector)") {
     constexpr size_t n_reps{10};
     
     BENCHMARK("double iterator") {

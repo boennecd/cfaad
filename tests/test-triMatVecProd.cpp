@@ -148,7 +148,7 @@ TEST_CASE("cfaad::triMatVecProd gives the right value") {
     }
 }
 
-TEST_CASE("cfaad::triMatVecProd benchmark"){
+TEST_CASE("cfaad::triMatVecProd benchmark (10x Ab or A^Tb with a 5x5 upper triangular matrix)"){
     constexpr size_t n_reps{10};
     
     BENCHMARK("two double iterators") {

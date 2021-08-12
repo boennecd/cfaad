@@ -81,7 +81,7 @@ public:
     n{x.n}, 
     mem{new double[x.has_inverse() ? n * (n + 1) : (n * (n + 1)) / 2]},
     factorization{mem.get()},
-    inverse{x.has_inverse() ? factorization +  (n * (n + 1)) / 2 : nullptr}
+    inverse{x.has_inverse() ? factorization + (n * (n + 1)) / 2 : nullptr}
     {
         std::copy(x.factorization, x.factorization + (n * (n + 1)) / 2,
                   factorization);
