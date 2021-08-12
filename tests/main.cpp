@@ -1,5 +1,3 @@
-// #define AADMULTIOUT true
-// #define AADET false
 #include <AAD.h>
 #include <AADInit.hpp>
 
