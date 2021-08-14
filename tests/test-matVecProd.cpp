@@ -24,16 +24,29 @@ typename std::iterator_traits<I3>::value_type test_func
     return cfaad::sum(of, of + n_ele);
 }
 
-constexpr size_t m{4}, n{5};
+template<class I1, class I2, class I3>
+typename std::iterator_traits<I3>::value_type test_func
+(I1 xf, I1 xl, I2 af, I2 al, I3 of, bool trans, size_t const n_ele, 
+ size_t const other)
+{
+    cfaad::matVecProd(xf, xl, af, al, of, trans, other);
+    
+    for(size_t i = 0; i < n_ele; ++i)
+        of[i] = sqrt(1 + exp(of[i]));
+    return cfaad::sum(of, of + n_ele);
+}
+
+constexpr size_t m{4}, n{5}, ldB{7};
 const double a[] {-0.47, -0.26, 0.15, 0.82}, 
-             B[] {-0.6, 0.8, 0.89, 0.32, 0.26, -0.88, -0.59, -0.65, 0.37, -0.23, 
-                  0.54, 0, 0.44, 0.98, -0.24, 0.55, 0.87, -0.58, 0.3, -0.75},
+             B[] {-0.6, 0.8, 0.89, 0.32, 0.26, -0.88, -0.59, -0.65, 0.37, -0.23, 0.54, 0, 0.44, 0.98, -0.24, 0.55, 0.87, -0.58, 0.3, -0.75},
+        B_xtra[] {-0.6, 0.8, 0.89, 0.32, -0.32, -0.04, 0.2, 0.26, -0.88, -0.59, -0.65, -0.01, -0.63, 0.65, 0.37, -0.23, 0.54, 0, 0.34, 0.59, -0.78, 0.44, 0.98, -0.24, 0.55, 0.45, -0.18, 0.64, 0.87, -0.58, 0.3, -0.75, 0.29, 0.57, 0.11},
              d[] {-0.47, -0.23, -0.97, -0.24, 0.74};
 double wk[std::max(m,n)];
        
 
 Number ad_a[m],
        ad_B[n * m],
+  ad_B_xtra[n * ldB],
        ad_d[n],
       ad_wk[std::max(m, n)];
        
@@ -48,10 +61,13 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
     /** R code to compute the result
         set.seed(1)
         m <- 4L
+        x_xtra <- 3L
         n <- 5L
         dput(a <- round(runif(m, -1, 1), 2))
         dput(B <- round(runif(m * n, -1, 1), 2))
         dput(d <- round(runif(n, -1, 1), 2))
+        dput(rbind(matrix(B, m), 
+                   matrix(round(runif(x_xtra * n, -1, 1), 2), x_xtra)))
 
         f <- function(x){
             B <- matrix(head(x, m * n), m)
@@ -77,6 +93,16 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
         REQUIRE(v == Approx(true_val).epsilon(eps));
         
         v = test_func(begin(B), end(B), begin(a), end(a), wk, true, n);
+        REQUIRE(v == Approx(true_val_T).epsilon(eps));
+    }
+    
+    SECTION("gives the right value with double iterators (ldx > m)"){
+        double v = test_func
+            (begin(B_xtra), end(B_xtra), begin(d), end(d), wk, false, m, m);
+        REQUIRE(v == Approx(true_val).epsilon(eps));
+        
+        v = test_func
+            (begin(B_xtra), end(B_xtra), begin(a), end(a), wk, true, n, n);
         REQUIRE(v == Approx(true_val_T).epsilon(eps));
     }
     
@@ -116,7 +142,7 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
                 Approx(true_derivs_T[i + n * m]).epsilon(eps)); 
                 
         Number::tape->rewind();
-        cfaad::putOnTape(ad_B, ad_B + m * n);
+        cfaad::putOnTape(begin(ad_B), end(ad_B));
         
         v = test_func(begin(ad_B), end(ad_B), begin(a), end(a), ad_wk, 
                       true, n);
@@ -125,6 +151,64 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
         for(size_t i = 0; i < n * m; ++i)
             REQUIRE(ad_B[i].adjoint() == 
                 Approx(true_derivs_T[i]).epsilon(eps)); 
+    }
+    
+    SECTION("gives the right value with a double and a Number iterator (ldx > m)"){
+        // trans == false
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(d), end(d), ad_d);
+        
+        Number v = test_func(begin(B_xtra), end(B_xtra), begin(ad_d), end(ad_d), 
+                             ad_wk, false, m, m);
+        REQUIRE(v.value() == Approx(true_val).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < n; ++i)
+            REQUIRE(ad_d[i].adjoint() == 
+                Approx(true_derivs[i + n * m]).epsilon(eps)); 
+                
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(B_xtra), end(B_xtra), begin(ad_B_xtra));
+        
+        v = test_func(begin(ad_B_xtra), end(ad_B_xtra), begin(d), end(d), ad_wk, 
+                      false, m, m);
+        REQUIRE(v.value() == Approx(true_val).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < n; ++i){
+            size_t j{};
+            for(; j < m; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() 
+                    == Approx(true_derivs[j + i * m]).epsilon(eps));
+            for(; j < ldB; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() == 0);
+        }
+        
+        // trans == true    
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(a), end(a), ad_a);
+        
+        v = test_func(begin(B_xtra), end(B_xtra), begin(ad_a), end(ad_a), ad_wk, 
+                      true, n, n);
+        REQUIRE(v.value() == Approx(true_val_T).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < m; ++i)
+            REQUIRE(ad_a[i].adjoint() == 
+                Approx(true_derivs_T[i + n * m]).epsilon(eps)); 
+                
+        Number::tape->rewind();
+        cfaad::putOnTape(begin(ad_B_xtra), end(ad_B_xtra));
+        
+        v = test_func(begin(ad_B_xtra), end(ad_B_xtra), begin(a), end(a), ad_wk, 
+                      true, n, n);
+        REQUIRE(v.value() == Approx(true_val_T).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < n; ++i){
+            size_t j{};
+            for(; j < m; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() 
+                    == Approx(true_derivs_T[j + i * m]).epsilon(eps));
+            for(; j < ldB; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() == 0);
+        }
     }
     
     SECTION("gives the right value with Number iterators"){
@@ -146,7 +230,7 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
         // trans == true
         Number::tape->rewind();
         cfaad::convertCollection(begin(a), end(a), ad_a);
-        cfaad::putOnTape(ad_B, ad_B + m * n);
+        cfaad::putOnTape(begin(ad_B), end(ad_B));
         
         v = test_func(begin(ad_B), end(ad_B), begin(ad_a), end(ad_a), ad_wk, 
                       true, n);
@@ -158,6 +242,50 @@ TEST_CASE("cfaad::matVecProd gives the right value") {
         for(size_t i = 0; i < n * m; ++i)
             REQUIRE(ad_B[i].adjoint() == 
                 Approx(true_derivs_T[i]).epsilon(eps)); 
+    }
+    
+    SECTION("gives the right value with Number iterators (ldx > m)"){
+        // trans == false
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(d), end(d), ad_d);
+        cfaad::convertCollection(begin(B_xtra), end(B_xtra), ad_B_xtra);
+        
+        Number v = test_func(begin(ad_B_xtra), end(ad_B_xtra), begin(ad_d), 
+                             end(ad_d), ad_wk, false, m, m);
+        REQUIRE(v.value() == Approx(true_val).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < n; ++i){
+            size_t j{};
+            for(; j < m; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() 
+                    == Approx(true_derivs[j + i * m]).epsilon(eps));
+            for(; j < ldB; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() == 0);
+        }
+        for(size_t i = 0; i < n; ++i)
+            REQUIRE(ad_d[i].adjoint() == 
+                Approx(true_derivs[i + n * m]).epsilon(eps)); 
+                
+        // trans == true
+        Number::tape->rewind();
+        cfaad::convertCollection(begin(a), end(a), ad_a);
+        cfaad::putOnTape(begin(ad_B_xtra), end(ad_B_xtra));
+        
+        v = test_func(begin(ad_B_xtra), end(ad_B_xtra), begin(ad_a), end(ad_a), 
+                      ad_wk, true, n, n);
+        REQUIRE(v.value() == Approx(true_val_T).epsilon(eps));
+        v.propagateToStart();
+        for(size_t i = 0; i < m; ++i)
+            REQUIRE(ad_a[i].adjoint() == 
+                Approx(true_derivs_T[i + n * m]).epsilon(eps)); 
+        for(size_t i = 0; i < n; ++i){
+            size_t j{};
+            for(; j < m; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() 
+                    == Approx(true_derivs_T[j + i * m]).epsilon(eps));
+            for(; j < ldB; ++j)
+                REQUIRE(ad_B_xtra[j + i * ldB].adjoint() == 0);
+        }
     }
 }
 
