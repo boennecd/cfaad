@@ -13,25 +13,25 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-two double iterators                           100           213     1.8531 ms 
-                                        86.4606 ns    86.4354 ns    86.5403 ns 
-                                        0.20753 ns    0.08027 ns   0.461411 ns 
+two double iterators                           100           217     1.9313 ms 
+                                        90.0847 ns    88.6967 ns    94.9853 ns 
+                                        10.9816 ns   0.465416 ns    24.8826 ns 
                                                                                
-one double iterator (self)                     100           243     1.8468 ms 
-                                        75.4635 ns    74.0381 ns    79.0814 ns 
-                                        10.0981 ns    1.06279 ns    18.5376 ns 
+one double iterator (self)                     100           256       1.92 ms 
+                                        75.1038 ns    73.9448 ns    80.8089 ns 
+                                        11.3618 ns  0.0555235 ns    27.1129 ns 
                                                                                
-one double and one Number iterator             100            55      1.859 ms 
-                                        352.031 ns     340.41 ns    375.478 ns 
-                                        81.0307 ns    48.4774 ns    135.702 ns 
+one double and one Number iterator             100            57     1.9437 ms 
+                                        349.461 ns    339.212 ns    373.586 ns 
+                                        77.2208 ns    37.5199 ns    133.753 ns 
                                                                                
-two Number iterators                           100            40      1.856 ms 
-                                        466.227 ns    451.522 ns    502.439 ns 
-                                        104.083 ns    5.41278 ns    191.713 ns 
+two Number iterators                           100            42     1.9362 ms 
+                                        455.122 ns    453.948 ns     456.53 ns 
+                                        6.53333 ns    5.46718 ns    9.21133 ns 
                                                                                
-one Number iterator (self)                     100            55     1.8755 ms 
-                                        346.689 ns    341.149 ns    373.219 ns 
-                                        52.9326 ns    3.38266 ns    126.063 ns 
+one Number iterator (self)                     100            60      1.962 ms 
+                                         330.04 ns    329.405 ns    331.374 ns 
+                                        4.51187 ns    2.02442 ns    7.64997 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -44,23 +44,23 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-double iterator                                100             3      2.763 ms 
-                                        9.00316 us    8.87828 us    9.43493 us 
-                                        1.03844 us    288.561 ns    2.32806 us 
+double iterator                                100             3     2.5977 ms 
+                                        8.75622 us    8.64056 us    9.05155 us 
+                                        827.739 ns    113.389 ns      1.518 us 
                                                                                
 double iterator (pre-computed                                                  
-factorization)                                 100           230       1.84 ms 
-                                        79.2069 ns    78.8312 ns    80.8335 ns 
-                                        3.28627 ns   0.101243 ns     7.7336 ns 
+factorization)                                 100           247     1.9266 ms 
+                                        76.9724 ns    76.8969 ns    77.2176 ns 
+                                       0.607632 ns  0.0825658 ns    1.34677 ns 
                                                                                
-Number iterator                                100             2     1.9774 ms 
-                                        9.69907 us    9.61883 us    9.90602 us 
-                                        575.343 ns    38.3229 ns    1.11319 us 
+Number iterator                                100             3     2.8587 ms 
+                                        9.51551 us    9.49752 us    9.58027 us 
+                                        150.582 ns    24.4446 ns    337.754 ns 
                                                                                
 Number iterator  (pre-computed                                                 
-factorization)                                 100            30      1.878 ms 
-                                        635.995 ns    623.669 ns    689.246 ns 
-                                        111.114 ns    17.2663 ns    261.295 ns 
+factorization)                                 100            32     1.9456 ms 
+                                        630.492 ns    612.685 ns    664.856 ns 
+                                        119.352 ns    67.4229 ns    183.695 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -73,37 +73,37 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-two double iterators                           100            94     1.8706 ms 
-                                        200.132 ns    196.225 ns    215.289 ns 
-                                        32.7124 ns    1.67042 ns    75.8386 ns 
+two double iterators                           100           101     1.9392 ms 
+                                        191.203 ns    191.039 ns    191.913 ns 
+                                        1.48877 ns   0.212094 ns     3.5024 ns 
                                                                                
-two double iterators (trans)                   100            69     1.8768 ms 
-                                        263.662 ns    263.361 ns    264.272 ns 
-                                         2.0762 ns    1.18244 ns    3.33499 ns 
+two double iterators (trans)                   100            72     1.9368 ms 
+                                        271.303 ns    263.202 ns    291.614 ns 
+                                        56.8341 ns    0.91317 ns    103.562 ns 
                                                                                
-mat (double) x vec (Number)                    100            15      1.926 ms 
-                                        1.24691 us    1.22635 us    1.34569 us 
-                                        196.444 ns    2.93501 ns     468.28 ns 
+mat (double) x vec (Number)                    100            16     1.9648 ms 
+                                        1.22258 us    1.22103 us    1.22709 us 
+                                        12.2236 ns    3.53737 ns    25.8644 ns 
                                                                                
-mat (double) x vec (Number) (trans)            100            12     1.9032 ms 
-                                        1.67372 us    1.59572 us    1.82137 us 
-                                        525.658 ns    318.616 ns    801.482 ns 
+mat (double) x vec (Number) (trans)            100            13     2.0228 ms 
+                                         1.5484 us    1.54684 us    1.55282 us 
+                                         12.393 ns    5.46881 ns    26.8771 ns 
                                                                                
-mat (Number) x vec (double)                    100            15     1.9605 ms 
-                                        1.33072 us    1.32919 us    1.33661 us 
-                                        13.7761 ns    2.66323 ns    32.3214 ns 
+mat (Number) x vec (double)                    100            15      1.953 ms 
+                                         1.2947 us    1.29306 us    1.30014 us 
+                                        13.4881 ns    2.78149 ns    29.6846 ns 
                                                                                
-mat (Number) x vec (double) (trans)            100            11     1.8766 ms 
-                                        1.73052 us    1.72622 us    1.74121 us 
-                                        31.8224 ns     7.7957 ns    58.3785 ns 
+mat (Number) x vec (double) (trans)            100            12      2.046 ms 
+                                         1.7318 us    1.69889 us    1.81944 us 
+                                        240.522 ns     45.631 ns    480.798 ns 
                                                                                
-two Number iterators                           100            11     1.9327 ms 
-                                        1.74258 us    1.74091 us    1.74799 us 
-                                        13.8161 ns    4.95746 ns     30.864 ns 
+two Number iterators                           100            12     2.1096 ms 
+                                        1.74096 us    1.73986 us    1.74284 us 
+                                        7.12739 ns    4.74197 ns    13.1407 ns 
                                                                                
-two Number iterators (trans)                   100            10      1.927 ms 
-                                        1.94231 us    1.90727 us      2.114 us 
-                                        341.237 ns    7.43187 ns    813.909 ns 
+two Number iterators (trans)                   100            11     2.0911 ms 
+                                        1.86992 us    1.86853 us    1.87328 us 
+                                        10.3645 ns     5.3831 ns    21.4796 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -116,31 +116,58 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-two double iterators                           100             7     1.8942 ms 
-                                        2.67769 us    2.62844 us    2.87228 us 
-                                         430.72 ns    88.8405 ns    998.042 ns 
+two double iterators                           100             8      2.128 ms 
+                                        2.57036 us    2.56689 us    2.58545 us 
+                                        32.1797 ns    3.93315 ns    76.2164 ns 
                                                                                
 two double iterators (pre-computed                                             
-factorization)                                 100            21     1.9362 ms 
-                                        949.235 ns    830.135 ns    1.53965 us 
-                                        1.17555 us    13.1325 ns    2.57527 us 
+factorization)                                 100            22     1.9932 ms 
+                                         883.87 ns    808.442 ns    1.25516 us 
+                                        739.712 ns    15.3959 ns    1.76473 us 
                                                                                
-mat (double) x vec (Number)                    100             5     1.8685 ms 
-                                        3.83157 us    3.71568 us    4.09129 us 
-                                        840.291 ns    394.038 ns    1.43806 us 
+mat (double) x vec (Number)                    100             6     2.3016 ms 
+                                        3.83365 us    3.82562 us    3.86019 us 
+                                         63.908 ns    7.05885 ns    140.373 ns 
                                                                                
-mat (Number) x vec (double)                    100             5      2.002 ms 
-                                        3.98068 us    3.91109 us    4.27501 us 
-                                        595.744 ns    10.6552 ns    1.39753 us 
+mat (Number) x vec (double)                    100             6     2.2692 ms 
+                                        3.77118 us    3.76559 us     3.7854 us 
+                                        41.1909 ns    7.77061 ns    76.2592 ns 
                                                                                
-two Number iterators                           100             5     2.0165 ms 
-                                        3.94876 us    3.88451 us    4.24173 us 
-                                         587.97 ns    43.2514 ns    1.38685 us 
+two Number iterators                           100             5     1.9545 ms 
+                                        3.90042 us    3.89468 us    3.91442 us 
+                                        42.3549 ns    11.1898 ns    75.3584 ns 
                                                                                
 two Number iterators (pre-computed                                             
-factorization)                                 100            10      2.036 ms 
-                                        2.05926 us    1.99698 us     2.2195 us 
-                                        447.959 ns      53.38 ns    821.756 ns 
+factorization)                                 100            10       1.98 ms 
+                                        1.98354 us    1.98158 us    1.99121 us 
+                                        17.4705 ns    3.62808 ns    40.8144 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+cfaad::quadFormSym benchmark (10x y^TXy with a 4x4 matrix)
+-------------------------------------------------------------------------------
+/home/boennecd/Dropbox/skole_backup/postdoc/cfaad/tests/test-quadFormSym.cpp:95
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+two double iterators                           100         77589          0 ns 
+                                         0.2449 ns   0.244866 ns   0.244936 ns 
+                                     0.000179222 ns 0.000163011 ns 0.000220396 ns 
+                                                                               
+mat (double) x vec (Number)                    100            76      1.938 ms 
+                                        248.546 ns     248.12 ns    249.242 ns 
+                                        2.71792 ns    1.84587 ns    4.86309 ns 
+                                                                               
+mat (Number) x vec (double)                    100            52     1.9396 ms 
+                                        372.175 ns    370.925 ns    376.129 ns 
+                                        10.3257 ns    3.73255 ns    22.9596 ns 
+                                                                               
+mat (Number) x vec (Number)                    100            33     1.9404 ms 
+                                         586.85 ns    585.468 ns    590.337 ns 
+                                        10.3503 ns    3.21819 ns    20.3169 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -153,13 +180,13 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-double iterator                                100           169      1.859 ms 
-                                        109.287 ns    109.233 ns    109.494 ns 
-                                        0.48612 ns  0.0947496 ns    1.13957 ns 
+double iterator                                100           176      1.936 ms 
+                                        109.125 ns    108.888 ns    109.754 ns 
+                                        1.73522 ns   0.103688 ns    3.57572 ns 
                                                                                
-Number iterator                                100            42     1.8942 ms 
-                                         451.67 ns    439.539 ns    481.757 ns 
-                                        92.6372 ns    38.1576 ns    164.214 ns 
+Number iterator                                100            43     1.9436 ms 
+                                        474.648 ns    455.787 ns     510.99 ns 
+                                         129.61 ns    75.0435 ns    197.498 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -172,31 +199,31 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-two double iterators                           100             2     2.1688 ms 
-                                        10.9898 us    10.8053 us    11.6862 us 
-                                        1.52551 us    86.3052 ns    3.52837 us 
+two double iterators                           100             2     2.1282 ms 
+                                        10.6168 us    10.5891 us    10.7046 us 
+                                        216.282 ns    24.4392 ns    467.386 ns 
                                                                                
 two double iterators (pre-computed                                             
-factorization)                                 100             4     1.9608 ms 
-                                        4.90689 us    4.82527 us    5.25892 us 
-                                        740.303 ns    117.509 ns    1.74137 us 
+factorization)                                 100             4      1.978 ms 
+                                        4.97048 us    4.95314 us    5.02717 us 
+                                        137.346 ns    18.8519 ns    303.083 ns 
                                                                                
-Numbers and doubles                            100             2      3.408 ms 
-                                        17.6986 us    17.1625 us    18.6044 us 
-                                        3.48232 us    2.33345 us    5.05608 us 
+Numbers and doubles                            100             2     3.2692 ms 
+                                        16.9532 us    16.5406 us     17.797 us 
+                                        2.88689 us    1.63573 us    4.81178 us 
                                                                                
-doubles and Numbers                            100             2       2.29 ms 
-                                        11.4314 us    11.2595 us    11.8905 us 
-                                        1.29831 us    489.897 ns    2.56596 us 
+doubles and Numbers                            100             2     2.2246 ms 
+                                        11.0852 us    11.0548 us    11.2037 us 
+                                        258.309 ns    22.2391 ns    595.827 ns 
                                                                                
-Numbers and Numbers                            100             2      3.443 ms 
-                                         17.199 us    16.9074 us    17.9324 us 
-                                         2.0931 us    449.885 ns    3.75711 us 
+Numbers and Numbers                            100             2     3.3194 ms 
+                                        16.7573 us    16.5465 us    17.7428 us 
+                                        1.96724 us    28.6689 ns    4.68129 us 
                                                                                
 Numbers and Numbers (pre-computed                                              
-factorization)                                 100             2     2.1134 ms 
-                                        10.5387 us    10.3417 us    11.2033 us 
-                                        1.52761 us    20.2552 ns    3.45328 us 
+factorization)                                 100             2      2.034 ms 
+                                        10.1414 us     10.125 us    10.2049 us 
+                                        150.168 ns    21.9821 ns    354.793 ns 
                                                                                
 
 -------------------------------------------------------------------------------
@@ -210,39 +237,39 @@ benchmark name                       samples       iterations    estimated
                                      mean          low mean      high mean
                                      std dev       low std dev   high std dev
 -------------------------------------------------------------------------------
-two double iterators                           100           109     1.8639 ms 
-                                        168.734 ns    168.696 ns    168.786 ns 
-                                       0.224523 ns   0.172375 ns   0.306462 ns 
+two double iterators                           100           118      1.947 ms 
+                                        164.574 ns    164.549 ns     164.63 ns 
+                                       0.181126 ns    0.10285 ns   0.367568 ns 
                                                                                
-two double iterators (trans)                   100          1696      1.696 ms 
-                                        10.4544 ns    10.2821 ns    11.3118 ns 
-                                        1.70802 ns 0.00827537 ns    4.07625 ns 
+two double iterators (trans)                   100          1867      1.867 ms 
+                                        10.2809 ns    10.2793 ns    10.2834 ns 
+                                     0.00983066 ns 0.00695604 ns  0.0177434 ns 
                                                                                
-mat (double) x vec (Number)                    100            26     1.8746 ms 
-                                        717.068 ns    697.152 ns    754.813 ns 
-                                        137.237 ns     84.543 ns    200.565 ns 
+mat (double) x vec (Number)                    100            30      1.986 ms 
+                                        673.197 ns    659.661 ns    709.316 ns 
+                                        98.6474 ns    5.78028 ns    201.253 ns 
                                                                                
-mat (double) x vec (Number) (trans)            100            28     1.8788 ms 
-                                        658.802 ns    647.852 ns    710.689 ns 
-                                        105.167 ns    6.25401 ns    250.523 ns 
+mat (double) x vec (Number) (trans)            100            30      1.956 ms 
+                                        618.914 ns    616.388 ns    624.013 ns 
+                                        17.5503 ns    10.2643 ns    29.7063 ns 
                                                                                
-mat (Number) x vec (double)                    100            24     1.9056 ms 
-                                        807.904 ns    781.212 ns    875.418 ns 
-                                        200.038 ns    66.3555 ns     371.87 ns 
+mat (Number) x vec (double)                    100            27     2.0088 ms 
+                                        737.101 ns    736.288 ns    738.032 ns 
+                                        4.42428 ns    3.72571 ns    5.52492 ns 
                                                                                
-mat (Number) x vec (double) (trans)            100            27     1.8819 ms 
-                                        701.444 ns    686.806 ns    765.017 ns 
-                                        133.136 ns    15.2642 ns    313.736 ns 
+mat (Number) x vec (double) (trans)            100            32     1.9936 ms 
+                                        624.478 ns    622.923 ns    626.497 ns 
+                                         8.9426 ns    7.12103 ns    12.1011 ns 
                                                                                
-two Number iterators                           100            18     1.9206 ms 
-                                        1.04763 us    1.03093 us    1.12874 us 
-                                        161.647 ns    5.35671 ns    385.476 ns 
+two Number iterators                           100            20      1.954 ms 
+                                        974.333 ns    973.392 ns    975.644 ns 
+                                        5.60101 ns    4.30902 ns    9.05893 ns 
                                                                                
-two Number iterators (trans)                   100            18      1.863 ms 
-                                        1.02905 us     1.0115 us    1.11139 us 
-                                        167.848 ns    9.91911 ns    399.757 ns 
+two Number iterators (trans)                   100            22     1.9734 ms 
+                                        909.642 ns    894.074 ns    948.525 ns 
+                                         109.98 ns    6.78293 ns    202.134 ns 
                                                                                
 
 ===============================================================================
-All tests passed (489 assertions in 14 test cases)
+All tests passed (533 assertions in 16 test cases)
 
