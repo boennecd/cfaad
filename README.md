@@ -23,7 +23,7 @@ cmake --build build --verbose -j4
 ```
 
 ### License
-The author of the original library (Antoine Savine)
+The original library is written by Antoine Savine and
 is distributed under the following conditions
 
 > The code is freely available to anyone. Any person who purchased a copy of the book is authorized to use, modify and distribute the code for any application, as long as the credits remain on the top of the files.
